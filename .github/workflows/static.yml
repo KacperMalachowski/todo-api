@@ -1,0 +1,19 @@
+name: static
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+
+      - name: Lint
+        uses: golangci/golangci-lint-action@v4
