@@ -61,7 +61,7 @@ jobs:
           token_format: access_token
           project_id: ${{ vars.GCP_PROJECT_ID }}
           service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
-          workfload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
 
       - name: Configure Docker
         id: docker-auth
@@ -104,7 +104,7 @@ jobs:
         with:
           project_id: ${{ vars.GCP_PROJECT_ID }}
           service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
-          workfload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
 
       - name: Download kubeconfig
         # Fetches k3s-kubeconfig from Google Cloud Secret Manager
