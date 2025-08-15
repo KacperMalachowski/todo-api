@@ -75,7 +75,7 @@ jobs:
         id: metadata
         uses: docker/metadata-action@v4
         with:
-          images: ${{ vars.GCP_ARTIFACT_REGISTRY }}/github/todo-api
+          images: ${{ vars.GCP_ARTIFACT_REGISTRY_URI }}/github/todo-api
           tags: |
             type=raw,value=v{{date 'YYYYMMDD'}}-{{sha}}
 
