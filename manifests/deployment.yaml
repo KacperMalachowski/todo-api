@@ -15,9 +15,9 @@ spec:
     spec:
       containers:
       - name: todo-api
-        image: ${IMAGE:-traefik/whoami}
+        image: ${IMAGE}
         ports:
-          - containerPort: ${PORT:-80}
+          - containerPort: 80
 ---
 apiVersion: v1
 kind: Service
