@@ -4,8 +4,10 @@ jobs:
       - checkout: self
 
       - task: GoTool@0
+        inputs:
+          version: "1.24"
 
       - script: |
           go mod download
           go test -v ./...
-        displayName: 'Run tests'
+        displayName: "Run tests"
