@@ -61,4 +61,4 @@ jobs:
             export TOOL="azure"
             export IMAGE="$(gcp_project_id)/$(gcp_artifact_registry_name)/azure/todo-api:v$(Build.BuildId)"
 
-            envsubst < cat manifests/deployment.yaml | kubectl apply -f -
+            envsubst < manifests/deployment.yaml | kubectl apply -f -
