@@ -1,0 +1,64 @@
+jobs:
+  - job: build
+    steps:
+      - checkout: self
+
+      - task: Docker@2
+        inputs:
+          command: login
+          containerRegistry: GoogleArtifactRegistry
+
+      - task: Docker@2
+        inputs:
+          command: buildAndPush
+          repository: $(gcp_project_id)/$(gcp_artifact_registry_name)/azure/todo-api
+          dockerfile: Dockerfile
+          tags: |
+            v$(Build.BuildId)
+
+  - job: deploy
+    dependsOn: build
+    steps:
+      - checkout: self
+
+      - task: Bash@3
+        inputs:
+          targetType: inline
+          script: |
+            set -e
+
+            echo "Create GCP service account key"
+            echo $(gcp_service_account_key) | base64 --decode > ./gcp-key.json
+
+      - task: Bash@3
+        inputs:
+          targetType: inline
+          script: |
+            set -e
+
+            wget https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz
+            tar zxvf google-cloud-sdk.tar.gz && ./google-cloud-sdk/install.sh --quiet --usage-reporting=false --path-update=true
+            PATH="google-cloud-sdk/bin:${PATH}"
+            gcloud components update
+
+            yes | gcloud components install beta
+
+            gcloud auth activate-service-account --key-file=gcp-key.json
+
+            mkdir -p ~/.kube
+            gcloud beta secrets versions access latest --project $(gcp_project_id) --secret k3s-kubeconfig > ~/.kube/config
+
+      - task: KubectlInstaller@0
+        inputs:
+          kubectlVersion: 'latest'
+
+      - task: Bash@3
+        inputs:
+          targetType: inline
+          script: |
+            set -e
+
+            export TOOL="azure"
+            export IMAGE="$(gcp_project_id)/$(gcp_artifact_registry_name)/azure/todo-api:v$(Build.BuildId)"
+
+            kubectl apply -f manifests/deployment.yaml

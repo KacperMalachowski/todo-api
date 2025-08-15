@@ -1,0 +1,11 @@
+jobs:
+  - job: test
+    steps:
+      - checkout: self
+
+      - task: GoTool@0
+
+      - script: |
+          go mod download
+          go test -v ./...
+        displayName: 'Run tests'
