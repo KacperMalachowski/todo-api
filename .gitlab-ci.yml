@@ -16,12 +16,12 @@ variables:
   GCP_SERVICE_ACCOUNT: gitlab@malachowski-personal-ai.iam.gserviceaccount.com
   GCP_WORKLOAD_IDENTITY_PROVIDER: projects/941627704467/locations/global/workloadIdentityPools/diploma/providers/gitlab
   DOCKER_DRIVER: overlay2
-  GO_VERSION: "1.25"
+  GO_VERSION: "1.25.0"
 
 # Static analysis job - linting
 static:
   stage: static
-  image: golang:${GO_VERSION}
+  image: golang:1.24
   script:
     - go mod download
     - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b /tmp v1.64.6
