@@ -127,5 +127,5 @@ jobs:
           IMAGE: ${{ needs.build.outputs.image }}
           TOOL: github
         run: |
-          kubectl apply -f manifests/deployment.yaml
+          envsubt < manifests/deployment.yaml | kubectl apply -f -
 
