@@ -7,5 +7,5 @@ jobs:
 
       - script: |
           curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.64.6
-          golangci-lint --version
-          golangci-lint run
+          $(go env GOPATH)/golangci-lint --version
+          $(go env GOPATH)/golangci-lint run
