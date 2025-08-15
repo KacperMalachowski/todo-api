@@ -1,22 +1,139 @@
-build-job:
+# GitLab CI/CD Pipeline for Todo API
+# Mirrors the same process as Azure Pipeline and GitHub Actions
+# Uses Google Cloud Workload Identity Federation for secure authentication
+
+stages:
+  - static
+  - test
+  - build
+  - deploy
+
+variables:
+  # These should be set as GitLab CI/CD variables in project settings
+  GCP_PROJECT_ID: malachowski-personal-ai
+  GCP_ARTIFACT_REGISTRY: europe-docker.pkg.dev
+  GCP_ARTIFACT_REGISTRY_URI: europe-docker.pkg.dev/malachowski-personal-ai/diploma-ar
+  GCP_SERVICE_ACCOUNT: gitlab@malachowski-personal-ai.iam.gserviceaccount.com
+  GCP_WORKLOAD_IDENTITY_PROVIDER: projects/941627704467/locations/global/workloadIdentityPools/diploma/providers/gitlab
+  DOCKER_DRIVER: overlay2
+  GO_VERSION: "1.25"
+
+# Static analysis job - linting
+static:
+  stage: static
+  image: golang:${GO_VERSION}
+  script:
+    - go mod download
+    - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b /tmp v1.64.6
+    - /tmp/golangci-lint --version
+    - /tmp/golangci-lint run
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+# Test job - run unit tests
+test:
+  stage: test
+  image: golang:${GO_VERSION}
+  script:
+    - go mod download
+    - go test -v ./...
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+# Build job - build and push Docker image
+build:
   stage: build
+  image: google/cloud-sdk:alpine
+  services:
+    - docker:dind
+  variables:
+    IMAGE_TAG: v${CI_PIPELINE_ID}-${CI_COMMIT_SHORT_SHA}
+    IMAGE_NAME: ${GCP_ARTIFACT_REGISTRY_URI}/gitlab/todo-api
+    DOCKER_HOST: tcp://docker:2376
+    DOCKER_TLS_VERIFY: 0
+  id_tokens:
+    GITLAB_OIDC_TOKEN:
+      aud: https://sts.googleapis.com/
+  before_script:
+    # Install Docker client
+    - apk add --no-cache docker-cli
+    # Create credential file for Workload Identity Federation
+    - |
+      cat > /tmp/gcp-credentials.json << EOF
+      {
+        "type": "external_account",
+        "audience": "${GCP_WORKLOAD_IDENTITY_PROVIDER}",
+        "subject_token_type": "urn:ietf:params:oauth:token-type:jwt",
+        "token_url": "https://sts.googleapis.com/v1/token",
+        "credential_source": {
+          "file": "/tmp/gitlab_oidc_token.txt"
+        },
+        "service_account_impersonation_url": "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${GCP_SERVICE_ACCOUNT}:generateAccessToken"
+      }
+      EOF
+    # Save OIDC token to file
+    - echo $GITLAB_OIDC_TOKEN > /tmp/gitlab_oidc_token.txt
+    # Authenticate with Google Cloud using Workload Identity Federation
+    - gcloud auth login --cred-file=/tmp/gcp-credentials.json
+    - gcloud config set project $GCP_PROJECT_ID
+    - gcloud auth configure-docker ${GCP_ARTIFACT_REGISTRY} --quiet
   script:
-    - echo "Hello, $GITLAB_USER_LOGIN!"
+    - docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
+    - docker push ${IMAGE_NAME}:${IMAGE_TAG}
+    - echo "IMAGE=${IMAGE_NAME}:${IMAGE_TAG}" > build.env
+  artifacts:
+    reports:
+      dotenv: build.env
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
 
-test-job1:
-  stage: test
-  script:
-    - echo "This job tests something"
-
-test-job2:
-  stage: test
-  script:
-    - echo "This job tests something, but takes more time than test-job1."
-    - echo "After the echo commands complete, it runs the sleep command for 20 seconds"
-    - echo "which simulates a test that runs 20 seconds longer than test-job1"
-    - sleep 20
-
-deploy-prod:
+# Deploy job - deploy to Kubernetes
+deploy:
   stage: deploy
+  image: google/cloud-sdk:alpine
+  dependencies:
+    - build
+  id_tokens:
+    GITLAB_OIDC_TOKEN:
+      aud: https://sts.googleapis.com/
+  before_script:
+    # Create credential file for Workload Identity Federation
+    - |
+      cat > /tmp/gcp-credentials.json << EOF
+      {
+        "type": "external_account",
+        "audience": "${GCP_WORKLOAD_IDENTITY_PROVIDER}",
+        "subject_token_type": "urn:ietf:params:oauth:token-type:jwt",
+        "token_url": "https://sts.googleapis.com/v1/token",
+        "credential_source": {
+          "file": "/tmp/gitlab_oidc_token.txt"
+        },
+        "service_account_impersonation_url": "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${GCP_SERVICE_ACCOUNT}:generateAccessToken"
+      }
+      EOF
+    # Save OIDC token to file
+    - echo $GITLAB_OIDC_TOKEN > /tmp/gitlab_oidc_token.txt
+    # Authenticate with Google Cloud using Workload Identity Federation
+    - gcloud auth login --cred-file=/tmp/gcp-credentials.json
+    - gcloud config set project $GCP_PROJECT_ID
+    # Install kubectl
+    - gcloud components install kubectl --quiet
+    # Setup kubeconfig from Secret Manager
+    - mkdir -p ~/.kube
+    - gcloud secrets versions access latest --secret=k3s-kubeconfig > ~/.kube/config
+    # Install envsubst
+    - apk add --no-cache gettext
   script:
-    - echo "This job deploys something from the $CI_COMMIT_BRANCH branch."
+    - export TOOL="gitlab"
+    - export IMAGE=$IMAGE
+    - envsubst < manifests/deployment.yaml | kubectl apply -f -
+  environment:
+    name: production
+    url: https://api.todo.gitlab.malachowski.me
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  needs:
+    - job: build
+      artifacts: true

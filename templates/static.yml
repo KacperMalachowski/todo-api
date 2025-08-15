@@ -4,8 +4,14 @@ jobs:
       - checkout: self
 
       - task: GoTool@0
+        inputs:
+          version: "1.25"
 
       - script: |
+          set -e
+
+          go mod download
+
           curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.64.6
           $(go env GOPATH)/bin/golangci-lint --version
           $(go env GOPATH)/bin/golangci-lint run
