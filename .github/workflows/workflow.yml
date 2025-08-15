@@ -109,12 +109,13 @@ jobs:
       - name: Download kubeconfig
         # Fetches k3s-kubeconfig from Google Cloud Secret Manager
         uses: google-github-actions/get-secretmanager-secrets@v2
+        id: secrets
         with:
           secrets: |
             k3s-kubeconfig:${{ vars.GCP_PROJECT_ID }}/k3s-kubeconfig
 
       - name: Set KUBECONFIG
-        run: echo "${{ secrets.k3s-kubeconfig }}" > $HOME/.kube/config
+        run: echo "${{ steps.secrets.outputs.k3s-kubeconfig }}" > $HOME/.kube/config
 
       - name: Setup kubectl
         uses: azure/setup-kubectl@v4
