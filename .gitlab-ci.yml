@@ -45,6 +45,7 @@ build:
     IMAGE_TAG: v${CI_PIPELINE_ID}-${CI_COMMIT_SHORT_SHA}
     IMAGE_NAME: ${GCP_ARTIFACT_REGISTRY_URI}/gitlab/todo-api
     DOCKER_HOST: tcp://docker:2376
+    DOCKER_TLS_CERTDIR: ""
     DOCKER_TLS_VERIFY: 0
   id_tokens:
     GITLAB_OIDC_TOKEN:
