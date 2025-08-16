@@ -4,11 +4,13 @@
 # https://aka.ms/yaml
 
 trigger:
-- main
+  - main
+
+pr:
+  - main
 
 pool:
   vmImage: ubuntu-latest
-
 
 jobs:
   - template: templates/static.yml

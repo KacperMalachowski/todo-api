@@ -10,7 +10,10 @@ jobs:
 
       - task: Docker@2
         inputs:
-          command: buildAndPush
+          ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+            command: buildAndPush
+          ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
+            command: build
           repository: $(gcp_project_id)/$(gcp_artifact_registry_name)/azure/todo-api
           dockerfile: Dockerfile
           tags: |
@@ -18,6 +21,7 @@ jobs:
 
   - job: deploy
     dependsOn: build
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
     steps:
       - checkout: self
 
