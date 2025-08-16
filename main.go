@@ -11,7 +11,12 @@ import (
 func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Hello, World!"))
+		_, err := w.Write([]byte("Hello, World!"))
+		if err != nil {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			log.Println("Error writing response:", err)
+			return
+		}
 	})
 
 	srv := &http.Server {
