@@ -66,13 +66,16 @@ build:
     - gcloud auth configure-docker ${GCP_ARTIFACT_REGISTRY} --quiet
   script:
     - docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
-    - docker push ${IMAGE_NAME}:${IMAGE_TAG}
+    - |
+      if [ "$CI_COMMIT_BRANCH" = "main" ]; then
+        docker push ${IMAGE_NAME}:${IMAGE_TAG}
+      else
+        echo "Skipping docker push: not on main branch"
+      fi
     - echo "IMAGE=${IMAGE_NAME}:${IMAGE_TAG}" > build.env
   artifacts:
     reports:
       dotenv: build.env
-  rules:
-    - if: $CI_COMMIT_BRANCH == "main"
 
 deploy:
   stage: deploy
