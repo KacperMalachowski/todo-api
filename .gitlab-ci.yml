@@ -21,9 +21,6 @@ static:
     - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b /tmp latest
     - /tmp/golangci-lint --version
     - /tmp/golangci-lint run
-  rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 
 # Test job - run unit tests
 test:
@@ -32,9 +29,6 @@ test:
   script:
     - go mod download
     - go test -v ./...
-  rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 
 build:
   stage: build
