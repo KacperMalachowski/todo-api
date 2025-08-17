@@ -19,7 +19,7 @@ func TestAddTaskWithEmptyID(t *testing.T) {
 
 	err := database.Add(task)
 	assert.Error(t, err)
-	assert.Equal(t, db.InvalidTaskError, err)
+	assert.Equal(t, db.ErrInvalidTask, err)
 }
 
 // Test Adding a task with an empty title
@@ -32,7 +32,7 @@ func TestAddTaskWithEmptyTitle(t *testing.T) {
 
 	err := database.Add(task)
 	assert.Error(t, err)
-	assert.Equal(t, db.InvalidTaskError, err)
+	assert.Equal(t, db.ErrInvalidTask, err)
 }
 
 // Test Adding a nil task
@@ -43,7 +43,7 @@ func TestAddNilTask(t *testing.T) {
 
 	err := database.Add(task)
 	assert.Error(t, err)
-	assert.Equal(t, db.InvalidTaskError, err)
+	assert.Equal(t, db.ErrInvalidTask, err)
 }
 
 // Test Adding a valid task
@@ -67,7 +67,7 @@ func TestAddDuplicateTask(t *testing.T) {
 
 	err = database.Add(task)
 	assert.Error(t, err)
-	assert.Equal(t, db.DuplicateTaskError, err)
+	assert.Equal(t, db.ErrDuplicateTask, err)
 }
 
 func TestGetNonExistentTask(t *testing.T) {
@@ -77,7 +77,7 @@ func TestGetNonExistentTask(t *testing.T) {
 	task, err := database.Get("nonexistent")
 	assert.Nil(t, task)
 	assert.Error(t, err)
-	assert.Equal(t, db.NotFoundError, err)
+	assert.Equal(t, db.ErrNotFound, err)
 }
 
 func TestGetExistingTask(t *testing.T) {
@@ -101,7 +101,7 @@ func TestUpdateNonExistentTask(t *testing.T) {
 
 	err := database.Update("nonexistent", task)
 	assert.Error(t, err)
-	assert.Equal(t, db.NotFoundError, err)
+	assert.Equal(t, db.ErrNotFound, err)
 }
 
 func TestUpdateExistingTask(t *testing.T) {
@@ -132,7 +132,7 @@ func TestUpdateTaskWithEmptyID(t *testing.T) {
 
 	err := database.Update("", task)
 	assert.Error(t, err)
-	assert.Equal(t, db.InvalidTaskError, err)
+	assert.Equal(t, db.ErrInvalidTask, err)
 }
 
 func TestDeleteNonExistentTask(t *testing.T) {
@@ -156,6 +156,6 @@ func TestDeleteExistingTask(t *testing.T) {
 	retrievedTask, err := database.Get(id)
 	assert.Nil(t, retrievedTask)
 	assert.Error(t, err)
-	assert.Equal(t, db.NotFoundError, err)
+	assert.Equal(t, db.ErrNotFound, err)
 }
 

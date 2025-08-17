@@ -7,11 +7,11 @@ import (
 )
 
 var (
-	NotFoundError = fmt.Errorf("task not found")
-	InvalidIDError = fmt.Errorf("invalid task ID")
-	InvalidTaskError = fmt.Errorf("invalid task data")
-	InternalError = fmt.Errorf("internal server error")
-	DuplicateTaskError = fmt.Errorf("Task with the same ID already exists")
+	ErrNotFound = fmt.Errorf("task not found")
+	ErrInvalidID = fmt.Errorf("invalid task ID")
+	ErrInvalidTask = fmt.Errorf("invalid task data")
+	ErrInternal = fmt.Errorf("internal server error")
+	ErrDuplicateTask = fmt.Errorf("task with the same ID already exists")
 )
 
 type inMemory struct {
@@ -27,17 +27,17 @@ func NewInMemory() *inMemory {
 func (db *inMemory) Get(id string) (*todos.Task, error) {
 	task, exists := db.tasks[id]
 	if !exists {
-		return nil, NotFoundError
+		return nil,	ErrNotFound
 	}
 	return task, nil
 }
 
 func (db *inMemory) Add(task *todos.Task) error {
 	if task == nil || task.ID == "" || task.Title == "" {
-		return InvalidTaskError
+		return	ErrInvalidTask
 	}
 	if _, exists := db.tasks[task.ID]; exists {
-		return DuplicateTaskError
+		return	ErrDuplicateTask
 	}
 	db.tasks[task.ID] = task
 	return nil
@@ -45,10 +45,10 @@ func (db *inMemory) Add(task *todos.Task) error {
 
 func (db *inMemory) Update(id string, task *todos.Task) error {
 	if task == nil || task.ID == "" || task.Title == "" {
-		return InvalidTaskError
+		return	ErrInvalidTask
 	}
 	if _, exists := db.tasks[id]; !exists {
-		return NotFoundError
+		return	ErrNotFound
 	}
 	db.tasks[id] = task
 	return nil
