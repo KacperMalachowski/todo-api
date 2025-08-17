@@ -43,14 +43,11 @@ jobs:
             wget https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz
             tar zxvf google-cloud-sdk.tar.gz && ./google-cloud-sdk/install.sh --quiet --usage-reporting=false --path-update=true
             PATH="google-cloud-sdk/bin:${PATH}"
-            gcloud components update
-
-            yes | gcloud components install beta
 
             gcloud auth activate-service-account --key-file=gcp-key.json
 
             mkdir -p ~/.kube
-            gcloud beta secrets versions access latest --project $(gcp_project_id) --secret k3s-kubeconfig > ~/.kube/config
+            gcloud secrets versions access latest --project $(gcp_project_id) --secret k3s-kubeconfig > ~/.kube/config
 
       - task: KubectlInstaller@0
         inputs:
