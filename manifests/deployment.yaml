@@ -36,9 +36,11 @@ metadata:
 spec:
   entryPoints:
     - web
+    - websecure
   routes:
   - match: Host(`api.todo.${TOOL}.malachowski.me`)
     kind: Rule
     services:
       - name: todo-api-${TOOL}
         port: 8080
+  tls: {}
