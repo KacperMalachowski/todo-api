@@ -14,17 +14,17 @@ var (
 	ErrDuplicateTask = fmt.Errorf("task with the same ID already exists")
 )
 
-type inMemory struct {
+type InMemory struct {
 	tasks map[string]*todos.Task
 }
 
-func NewInMemory() *inMemory {
-	return &inMemory{
+func NewInMemory() *InMemory {
+	return &InMemory{
 		tasks: make(map[string]*todos.Task),
 	}
 }
 
-func (db *inMemory) List() ([]*todos.Task, error) {
+func (db *InMemory) List() ([]*todos.Task, error) {
 	if len(db.tasks) == 0 {
 		return nil, ErrNotFound
 	}
@@ -35,7 +35,7 @@ func (db *inMemory) List() ([]*todos.Task, error) {
 	return tasks, nil
 }
 
-func (db *inMemory) Get(id string) (*todos.Task, error) {
+func (db *InMemory) Get(id string) (*todos.Task, error) {
 	task, exists := db.tasks[id]
 	if !exists {
 		return nil,	ErrNotFound
@@ -43,7 +43,7 @@ func (db *inMemory) Get(id string) (*todos.Task, error) {
 	return task, nil
 }
 
-func (db *inMemory) Add(task *todos.Task) error {
+func (db *InMemory) Add(task *todos.Task) error {
 	if task == nil || task.ID == "" || task.Title == "" {
 		return	ErrInvalidTask
 	}
@@ -54,7 +54,7 @@ func (db *inMemory) Add(task *todos.Task) error {
 	return nil
 }
 
-func (db *inMemory) Update(id string, task *todos.Task) error {
+func (db *InMemory) Update(id string, task *todos.Task) error {
 	if task == nil || task.ID == "" || task.Title == "" {
 		return	ErrInvalidTask
 	}
@@ -65,7 +65,7 @@ func (db *inMemory) Update(id string, task *todos.Task) error {
 	return nil
 }
 
-func (db *inMemory) Delete(id string) {
+func (db *InMemory) Delete(id string) {
 	// Treat non-existent ID as an valid operation - task is deleted
 	delete(db.tasks, id)
 }
