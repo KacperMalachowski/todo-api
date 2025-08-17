@@ -17,7 +17,7 @@ spec:
       - name: todo-api
         image: ${IMAGE}
         ports:
-          - containerPort: 80
+          - containerPort: 8080
 ---
 apiVersion: v1
 kind: Service
@@ -41,4 +41,4 @@ spec:
     kind: Rule
     services:
       - name: todo-api-${TOOL}
-        port: 80
+        port: 8080
