@@ -39,6 +39,8 @@ func run(cmd *cobra.Command, args []string) error {
 	if err := http.ListenAndServe(":8080", r); err != nil {
 		log.Fatalf("Error starting server: %v", err)
 	}
+
+	return nil
 }
 
 func Execute() {
