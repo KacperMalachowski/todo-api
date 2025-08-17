@@ -24,6 +24,17 @@ func NewInMemory() *inMemory {
 	}
 }
 
+func (db *inMemory) List() ([]*todos.Task, error) {
+	if len(db.tasks) == 0 {
+		return nil, ErrNotFound
+	}
+	tasks := make([]*todos.Task, 0, len(db.tasks))
+	for _, task := range db.tasks {
+		tasks = append(tasks, task)
+	}
+	return tasks, nil
+}
+
 func (db *inMemory) Get(id string) (*todos.Task, error) {
 	task, exists := db.tasks[id]
 	if !exists {

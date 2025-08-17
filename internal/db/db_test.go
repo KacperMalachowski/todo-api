@@ -159,3 +159,45 @@ func TestDeleteExistingTask(t *testing.T) {
 	assert.Equal(t, db.ErrNotFound, err)
 }
 
+func TestListTasksWhenEmpty(t *testing.T) {
+	database := db.NewInMemory()
+	require.NotNil(t, database)
+
+	tasks, err := database.List()
+	assert.Nil(t, tasks)
+	assert.Error(t, err)
+	assert.Equal(t, db.ErrNotFound, err)
+}
+
+func TestListTasksWhenNotEmpty(t *testing.T) {
+	task1 := todos.NewTask("task1", "Test Task 1")
+	task2 := todos.NewTask("task2", "Test Task 2")
+	database := db.NewInMemory()
+	require.NotNil(t, database)
+
+	err := database.Add(task1)
+	assert.NoError(t, err)
+
+	err = database.Add(task2)
+	assert.NoError(t, err)
+
+	tasks, err := database.List()
+	assert.NoError(t, err)
+	assert.Len(t, tasks, 2)
+	assert.Contains(t, tasks, task1)
+	assert.Contains(t, tasks, task2)
+}
+
+func TestListTasksWithSingleTask(t *testing.T) {
+	task := todos.NewTask("task1", "Test Task")
+	database := db.NewInMemory()
+	require.NotNil(t, database)
+
+	err := database.Add(task)
+	assert.NoError(t, err)
+
+	tasks, err := database.List()
+	assert.NoError(t, err)
+	assert.Len(t, tasks, 1)
+	assert.Equal(t, task, tasks[0])
+}
